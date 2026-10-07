@@ -1,7 +1,7 @@
 # Vacation Finder
 
 Describe a trip (dates, party size, budget, weather/vibe) and get ranked destinations with flight prices and the weather forecast.
-Free data sources: Travelpayouts (cached fares), SerpApi Google Flights (live check, 250/month), Open-Meteo (weather), Claude (understanding + recommendations).
+Free data sources: Travelpayouts (cached fares), SerpApi Google Flights (live check, 250/month), Open-Meteo (weather), DeepSeek or Claude (understanding + recommendations).
 
 ## Run
 ```

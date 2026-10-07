@@ -38,12 +38,15 @@ function render(d){
   for(const o of d.options){
     const w=o.weather,f=o.flight,x=o.destination;
     h+=`<div class="card"><div class="row"><div><b>${esc(x.city)}, ${esc(x.country)}</b> <span class="mut">${esc(x.iata)} · ${o.distanceKm} km</span><div class="mut">${esc(x.why)}</div></div><div class="score">${o.score.total}</div></div>
-    <div class="row" style="margin-top:8px"><div>✈️ <b>€${f.pricePerPerson}</b> pp · €${o.totalPrice} total ${o.score.withinBudget===true?'<span class="ok">within budget</span>':o.score.withinBudget===false?'<span class="bad">over budget</span>':''}<div class="mut">${f.stops} stop(s)</div></div>
+    <div class="row" style="margin-top:8px"><div>✈️ <b>€${f.pricePerPerson}</b> pp · €${o.totalPrice} total ${o.score.withinBudget===true?'<span class="ok">within budget</span>':o.score.withinBudget===false?'<span class="bad">over budget</span>':''}<div class="mut">${f.stops ?? '?'} stop(s) · ${f.verified?'<span class="ok">✓ live price for '+d.criteria.travelers+' traveler(s)</span>':'cached price, not verified'}</div></div>
     <div>🌤 ${w.avgMinC?.toFixed(0)}–${w.avgMaxC?.toFixed(0)}°C${w.rainChance!=null?` · rain ${w.rainChance.toFixed(0)}%`:` · ${w.rainMm.toFixed(0)} mm`}${w.sunHoursPerDay!=null?` · ${w.sunHoursPerDay.toFixed(1)} h sun/day`:''}<div class="mut">${w.source==='forecast'?'forecast':'last year same dates'}</div></div></div>
     <div class="days">${w.days.map(t=>`<span class="day">${t.date.slice(5)}: ${t.min?.toFixed(0)}/${t.max?.toFixed(0)}°C ${t.rain>0.5?'🌧'+t.rain.toFixed(0)+'mm':'☀️'}</span>`).join('')}</div></div>`;
   }
   const notes=[];
-  if(m.flightProvider==='mock')notes.push('Flight prices are DEMO estimates. Set FLIGHT_PROVIDER=amadeus for real offers.');
+  if(m.flightProvider==='mock')notes.push('Flight prices are DEMO estimates. Add TRAVELPAYOUTS_TOKEN (and SERPAPI_KEY) in .env for real ones.');
+  if(m.flightProvider!=='mock'&&!m.liveVerification)notes.push('Prices come from a cache of recent searches and may be outdated. Add SERPAPI_KEY to check availability live.');
+  if(m.droppedUnavailable)notes.push(m.droppedUnavailable+' option(s) removed: no flights available for '+d.criteria.travelers+' traveler(s).');
+  if(m.droppedOverBudget)notes.push(m.droppedOverBudget+' option(s) removed: over budget.');
   if(!m.aiEnabled)notes.push('No ANTHROPIC_API_KEY set: using a basic parser and a fixed destination list.');
   if(notes.length)h+=`<div class="note">${notes.map(esc).join('<br>')}</div>`;
   $('out').innerHTML=h;

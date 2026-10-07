@@ -1,0 +1,31 @@
+{
+  "openapi": "3.0.3",
+  "info": { "title": "Vacation Finder API", "version": "1" },
+  "paths": {
+    "/api/v1/health": { "get": { "summary": "Liveness check (no auth)", "responses": { "200": { "description": "ok" } } } },
+    "/api/v1/search": {
+      "post": {
+        "summary": "Find trips matching dates, party size, budget and weather wishes",
+        "security": [{ "apiKey": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "oneOf": [
+          { "type": "object", "required": ["prompt"], "properties": { "prompt": { "type": "string", "maxLength": 1000 } } },
+          { "type": "object", "required": ["query"], "properties": {
+            "query": { "type": "object", "required": ["origin", "departDate", "returnDate"], "properties": {
+              "origin": { "type": "string", "example": "BRU", "description": "IATA code" },
+              "departDate": { "type": "string", "format": "date" }, "returnDate": { "type": "string", "format": "date" },
+              "travelers": { "type": "integer", "minimum": 1, "maximum": 9, "default": 1 },
+              "budgetTotal": { "type": "number" }, "budgetPerPerson": { "type": "number" }, "currency": { "type": "string", "default": "EUR" },
+              "weather": { "type": "object", "properties": { "minTempC": { "type": "number" }, "maxTempC": { "type": "number" }, "avoidRain": { "type": "boolean" }, "wantSun": { "type": "boolean" } } },
+              "vibe": { "type": "string" }, "maxFlightHours": { "type": "number" }, "scope": { "type": "string", "enum": ["europe", "worldwide"], "default": "europe" } } },
+            "destinations": { "type": "array", "maxItems": 15, "description": "Optional fixed candidate list; skips AI suggestions", "items": { "type": "object", "required": ["iata", "lat", "lon"], "properties": { "iata": { "type": "string" }, "city": { "type": "string" }, "country": { "type": "string" }, "lat": { "type": "number" }, "lon": { "type": "number" } } } } } }
+        ] } } } },
+        "responses": {
+          "200": { "description": "Ranked options (best first). Over-budget and unavailable options are excluded." },
+          "400": { "description": "invalid_request / invalid_json" }, "401": { "description": "unauthorized" },
+          "413": { "description": "too_large" }, "429": { "description": "rate_limited" }, "502": { "description": "upstream_error" }
+        }
+      }
+    }
+  },
+  "components": { "securitySchemes": { "apiKey": { "type": "apiKey", "in": "header", "name": "x-api-key" } } }
+}

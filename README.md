@@ -25,6 +25,8 @@ curl -X POST localhost:3000/api/v1/search -H 'x-api-key: KEY' -H 'content-type: 
 ```
 `destinations` is optional; without it Claude proposes candidates. Free text instead: `{ "prompt": "9-12 Oct, 2 people, max 500 euro, warm" }`.
 
+Dates: `options[]` only ever contains fares for your **exact** dates. Set `query.flexDays` (1-3, default 0 = exact only) to also get `alternatives[]`, an "Additional dates" list of cheaper fares within that many days. They are never mixed into `options`; each shows its own `departDate`/`returnDate`. In free-text mode, "no wiggle room"/exact dates means 0.
+
 Response (v1): `options[]` best first, each with `destination`, `flight` (`pricePerPerson`, `totalPrice`, `verified`, `priceSource`), `weather`, `links` (`booking`, `googleFlights`, `skyscanner`), `score`, `withinBudget`; plus `summary`, `meta` and `warnings`
 (`demo_flight_prices`, `flight_prices_cached_unverified`, `ai_disabled_basic_parser`).
 Options over budget, or with no flights for the party size, are never returned.

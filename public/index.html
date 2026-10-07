@@ -46,7 +46,7 @@ function card(o,d){
 }
 function render(d){
   const c=d.query,m=d.meta,W=d.warnings;
-  let h=`<div class="card"><b>${esc(c.origin)} → anywhere</b> · ${esc(c.departDate)} to ${esc(c.returnDate)} · ${c.travelers} traveler(s)${c.budgetTotal?` · budget €${c.budgetTotal}`:''}`;
+  let h=`<div class="card"><b>${esc(c.origin)} → ${(m.requestedPlaces?.matched||[]).length?esc(m.requestedPlaces.matched.join(', ')):'anywhere'}</b> · ${esc(c.departDate)} to ${esc(c.returnDate)} · ${c.travelers} traveler(s)${c.budgetTotal?` · budget €${c.budgetTotal}`:''}`;
   if(d.summary)h+=`<p class="sum">${esc(d.summary)}</p>`;
   h+='</div>';
   if(!d.options.length){
@@ -58,6 +58,7 @@ function render(d){
     h+=d.alternatives.map(o=>card(o,d)).join('');
   }
   const notes=[];
+  if((m.requestedPlaces?.unresolved||[]).length)notes.push('Could not find an airport for: '+m.requestedPlaces.unresolved.join(', ')+'.');
   if(W.includes('demo_flight_prices'))notes.push('Flight prices are DEMO estimates. Add TRAVELPAYOUTS_TOKEN (and SERPAPI_KEY) in .env for real ones.');
   if(W.includes('flight_prices_cached_unverified'))notes.push('Prices come from a cache of recent searches and may be outdated. Add SERPAPI_KEY to check availability live.');
   if(m.droppedUnavailable)notes.push(m.droppedUnavailable+' option(s) removed: no flights available for '+c.travelers+' traveler(s).');

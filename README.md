@@ -23,7 +23,9 @@ curl -X POST localhost:3000/api/v1/search -H 'x-api-key: KEY' -H 'content-type: 
   "destinations": [ { "iata": "LIS", "city": "Lisbon", "country": "Portugal", "lat": 38.72, "lon": -9.14 } ]
 }'
 ```
-`destinations` is optional; without it Claude proposes candidates. Free text instead: `{ "prompt": "9-12 Oct, 2 people, max 500 euro, warm" }`.
+Named places: add `query.places` (e.g. `["Albania", "Crete"]`: countries, regions, cities or IATA codes) and ONLY those are searched. Free text works too ("flights to Albania"). A built-in table covers ~120 European airports; other places are looked up by the AI when a key is set, otherwise listed in `meta.requestedPlaces.unresolved`.
+
+`destinations` (exact airports with coordinates) is optional and overrides everything; without it Claude proposes candidates. Free text instead: `{ "prompt": "9-12 Oct, 2 people, max 500 euro, warm" }`.
 
 Dates: `options[]` only ever contains fares for your **exact** dates. Set `query.flexDays` (1-3, default 0 = exact only) to also get `alternatives[]`, an "Additional dates" list of cheaper fares within that many days. They are never mixed into `options`; each shows its own `departDate`/`returnDate`. In free-text mode, "no wiggle room"/exact dates means 0.
 

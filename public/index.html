@@ -37,11 +37,13 @@ function render(d){
   let h=`<div class="card"><b>${esc(c.origin)} → anywhere</b> · ${esc(c.departDate)} to ${esc(c.returnDate)} · ${c.travelers} traveler(s)${c.budgetTotal?` · budget €${c.budgetTotal}`:''}`;
   if(d.summary)h+=`<p class="sum">${esc(d.summary)}</p>`;
   h+='</div>';
-  if(!d.options.length)h+='<div class="card">No matching options found.</div>';
+  if(!d.options.length){
+    const L={no_price_data:'no fare data for these dates',flight_error:'flight API error',weather_error:'weather API error',over_budget:'over budget',unavailable:'not available for your group',verify_error:'live check failed',too_long:'flight too long'};
+    h+='<div class="card"><b>No matching options.</b> Why each destination was skipped:<ul>'+(m.diagnostics||[]).map(x=>`<li>${esc(x.city||x.iata)}: ${esc(L[x.status]||x.status)}${x.detail?' <span class="mut">('+esc(x.detail)+')</span>':''}</li>`).join('')+'</ul></div>';}
   for(const o of d.options){
     const w={...o.weather,rainChance:o.weather.rainChancePct},f=o.flight,x=o.destination,tp=f.totalPrice;
     h+=`<div class="card"><div class="row"><div><b>${esc(x.city)}, ${esc(x.country)}</b> <span class="mut">${esc(x.iata)} · ${o.distanceKm} km</span><div class="mut">${esc(x.why)}</div></div><div class="score">${o.score.total}</div></div>
-    <div class="row" style="margin-top:8px"><div>✈️ <b>€${f.pricePerPerson}</b> pp · €${tp} total ${o.withinBudget===true?'<span class="ok">within budget</span>':o.withinBudget===false?'<span class="bad">over budget</span>':''}<div class="mut">${f.stops ?? '?'} stop(s) · ${f.verified?'<span class="ok">✓ live price for '+c.travelers+' traveler(s)</span>':'cached price, not verified'}</div></div>
+    <div class="row" style="margin-top:8px"><div>✈️ <b>€${f.pricePerPerson}</b> pp · €${tp} total ${o.withinBudget===true?'<span class="ok">within budget</span>':o.withinBudget===false?'<span class="bad">over budget</span>':''}<div class="mut">${f.exactDates?'':'<span class="bad">price is for '+esc(f.departDate)+' → '+esc(f.returnDate)+'</span> · '}${f.stops ?? '?'} stop(s) · ${f.verified?'<span class="ok">✓ live price for '+c.travelers+' traveler(s)</span>':'cached price, not verified'}</div></div>
     <div>🌤 ${w.avgMinC?.toFixed(0)}–${w.avgMaxC?.toFixed(0)}°C${w.rainChance!=null?` · rain ${w.rainChance.toFixed(0)}%`:` · ${w.rainMm.toFixed(0)} mm`}${w.sunHoursPerDay!=null?` · ${w.sunHoursPerDay.toFixed(1)} h sun/day`:''}<div class="mut">${w.source==='forecast'?'forecast':'last year same dates'}</div></div></div>
     <div class="days">${w.days.map(t=>`<span class="day">${t.date.slice(5)}: ${t.min?.toFixed(0)}/${t.max?.toFixed(0)}°C ${t.rain>0.5?'🌧'+t.rain.toFixed(0)+'mm':'☀️'}</span>`).join('')}</div></div>`;
   }

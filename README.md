@@ -25,7 +25,7 @@ curl -X POST localhost:3000/api/v1/search -H 'x-api-key: KEY' -H 'content-type: 
 ```
 `destinations` is optional; without it Claude proposes candidates. Free text instead: `{ "prompt": "9-12 Oct, 2 people, max 500 euro, warm" }`.
 
-Response (v1): `options[]` best first, each with `destination`, `flight` (`pricePerPerson`, `totalPrice`, `verified`, `priceSource`), `weather`, `score`, `withinBudget`; plus `summary`, `meta` and `warnings`
+Response (v1): `options[]` best first, each with `destination`, `flight` (`pricePerPerson`, `totalPrice`, `verified`, `priceSource`), `weather`, `links` (`booking`, `googleFlights`, `skyscanner`), `score`, `withinBudget`; plus `summary`, `meta` and `warnings`
 (`demo_flight_prices`, `flight_prices_cached_unverified`, `ai_disabled_basic_parser`).
 Options over budget, or with no flights for the party size, are never returned.
 Errors: `{ "error": { "code", "message" } }` with HTTP 400/401/405/413/429/502.

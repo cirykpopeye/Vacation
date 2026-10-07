@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vacation Finder</title>
+<style>
+:root{--bg:#f6f8fb;--card:#fff;--fg:#14202e;--mut:#5d6b7a;--acc:#1668e3;--ok:#1a8f4c;--bad:#c0392b;--bd:#e1e6ed}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1620;--card:#18222f;--fg:#e8eef5;--mut:#93a1b1;--acc:#5b9bff;--ok:#4cc27e;--bad:#ff7a6b;--bd:#2a3748}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif}
+main{max-width:860px;margin:0 auto;padding:24px 16px}h1{margin:0 0 4px}p.sub{color:var(--mut);margin:0 0 16px}
+textarea{width:100%;min-height:90px;padding:12px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--fg);font:inherit}
+button{margin-top:10px;padding:10px 20px;border:0;border-radius:10px;background:var(--acc);color:#fff;font:inherit;cursor:pointer}button:disabled{opacity:.5}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-top:14px}
+.row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.score{font-size:1.6rem;font-weight:700;color:var(--acc)}
+.mut{color:var(--mut);font-size:.9rem}.ok{color:var(--ok)}.bad{color:var(--bad)}
+.days{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.day{border:1px solid var(--bd);border-radius:8px;padding:4px 10px;font-size:.85rem}
+.sum{white-space:pre-wrap}.note{font-size:.85rem;color:var(--mut);margin-top:12px}
+</style></head><body><main>
+<h1>✈️ Vacation Finder</h1>
+<p class="sub">Describe your trip: dates, budget, group size and the weather or vibe you want.</p>
+<textarea id="p">I'm going on vacation from 9 October to 12 October, 2 people, max €500 total, I want warm sunny weather and a relaxed beach/city vibe.</textarea>
+<button id="go">Find trips</button>
+<div id="out"></div>
+<script>
+const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+$('go').onclick=async()=>{
+  const b=$('go');b.disabled=true;$('out').innerHTML='<div class="card">Searching flights and weather…</div>';
+  try{
+    const r=await fetch('/api/search',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt:$('p').value})});
+    const d=await r.json();if(!r.ok)throw new Error(d.error);render(d);
+  }catch(e){$('out').innerHTML='<div class="card bad">'+esc(e.message)+'</div>'}
+  b.disabled=false;
+};
+function render(d){
+  const c=d.criteria,m=d.meta;
+  let h=`<div class="card"><b>${esc(d.origin.city)} → anywhere</b> · ${esc(c.departDate)} to ${esc(c.returnDate)} · ${c.travelers} traveler(s)${c.budgetTotal?` · budget €${c.budgetTotal}`:''}`;
+  if(d.summary)h+=`<p class="sum">${esc(d.summary)}</p>`;
+  h+='</div>';
+  if(!d.options.length)h+='<div class="card">No matching options found.</div>';
+  for(const o of d.options){
+    const w=o.weather,f=o.flight,x=o.destination;
+    h+=`<div class="card"><div class="row"><div><b>${esc(x.city)}, ${esc(x.country)}</b> <span class="mut">${esc(x.iata)} · ${o.distanceKm} km</span><div class="mut">${esc(x.why)}</div></div><div class="score">${o.score.total}</div></div>
+    <div class="row" style="margin-top:8px"><div>✈️ <b>€${f.pricePerPerson}</b> pp · €${o.totalPrice} total ${o.score.withinBudget===true?'<span class="ok">within budget</span>':o.score.withinBudget===false?'<span class="bad">over budget</span>':''}<div class="mut">${f.stops} stop(s)</div></div>
+    <div>🌤 ${w.avgMinC?.toFixed(0)}–${w.avgMaxC?.toFixed(0)}°C${w.rainChance!=null?` · rain ${w.rainChance.toFixed(0)}%`:` · ${w.rainMm.toFixed(0)} mm`}${w.sunHoursPerDay!=null?` · ${w.sunHoursPerDay.toFixed(1)} h sun/day`:''}<div class="mut">${w.source==='forecast'?'forecast':'last year same dates'}</div></div></div>
+    <div class="days">${w.days.map(t=>`<span class="day">${t.date.slice(5)}: ${t.min?.toFixed(0)}/${t.max?.toFixed(0)}°C ${t.rain>0.5?'🌧'+t.rain.toFixed(0)+'mm':'☀️'}</span>`).join('')}</div></div>`;
+  }
+  const notes=[];
+  if(m.flightProvider==='mock')notes.push('Flight prices are DEMO estimates. Set FLIGHT_PROVIDER=amadeus for real offers.');
+  if(!m.aiEnabled)notes.push('No ANTHROPIC_API_KEY set: using a basic parser and a fixed destination list.');
+  if(notes.length)h+=`<div class="note">${notes.map(esc).join('<br>')}</div>`;
+  $('out').innerHTML=h;
+}
+</script></main></body></html>

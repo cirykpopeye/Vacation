@@ -1,0 +1,8 @@
+{
+  "name": "vacation",
+  "version": "0.1.0",
+  "description": "AI vacation finder: flight prices + destination weather",
+  "type": "module",
+  "scripts": { "start": "node server.js", "test": "node --test" },
+  "engines": { "node": ">=20" }
+}
